@@ -2,18 +2,41 @@ import time
 import uuid
 from typing import Generator
 
-from mlx_omni_server.chat.mlx.chat_generator import DEFAULT_MAX_TOKENS, ChatGenerator
-from mlx_omni_server.chat.openai.schema import (
-    ChatCompletionChoice,
-    ChatCompletionChunk,
-    ChatCompletionChunkChoice,
-    ChatCompletionRequest,
-    ChatCompletionResponse,
-    ChatCompletionUsage,
-    ChatMessage,
-    Role,
-)
+from mlx_omni_server.chat.mlx.chat_generator import (DEFAULT_MAX_TOKENS,
+                                                     ChatGenerator)
+from mlx_omni_server.chat.mlx.core_types import ToolCall as CoreToolCall
+from mlx_omni_server.chat.openai.schema import (ChatCompletionChoice,
+                                                ChatCompletionChunk,
+                                                ChatCompletionChunkChoice,
+                                                ChatCompletionRequest,
+                                                ChatCompletionResponse,
+                                                ChatCompletionUsage,
+                                                ChatMessage, Role, ToolCall)
 from mlx_omni_server.utils.logger import logger
+
+
+def _convert_tool_calls(
+    core_tool_calls: list[CoreToolCall] | None,
+) -> list[ToolCall] | None:
+    """Convert internal ToolCall format to OpenAI-compatible format.
+
+    Args:
+        core_tool_calls: List of tool calls from the model parser (core_types.ToolCall)
+
+    Returns:
+        List of OpenAI-compatible tool calls (schema.ToolCall), or None if input is None
+    """
+    if not core_tool_calls:
+        return None
+
+    return [
+        ToolCall.from_llama_output(
+            name=tc.name,
+            parameters=tc.arguments,
+            call_id=tc.id,
+        )
+        for tc in core_tool_calls
+    ]
 
 
 class OpenAIAdapter:
@@ -128,10 +151,12 @@ class OpenAIAdapter:
 
             # Use wrapper's chat tokenizer for tool processing
             if request.tools:
+                # Convert internal ToolCall format to OpenAI-compatible format
+                openai_tool_calls = _convert_tool_calls(result.content.tool_calls)
                 message = ChatMessage(
                     role=Role.ASSISTANT,
                     content=final_content,
-                    tool_calls=result.content.tool_calls,
+                    tool_calls=openai_tool_calls,
                     reasoning=reasoning_content,
                 )
             else:
