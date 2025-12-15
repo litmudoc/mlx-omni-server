@@ -1,3 +1,4 @@
+import json
 from abc import ABC
 from typing import Any, Dict, List, Optional, Union
 
@@ -74,6 +75,41 @@ class ChatTemplate(ABC):
                     for item in msg_dict["content"]
                     if item.get("type") == "text"
                 )
+            # Convert tool_calls arguments from JSON string to dict for Jinja template
+            # The Qwen3 chat template expects arguments as a dict, not a JSON string
+            if "tool_calls" in msg_dict and msg_dict["tool_calls"]:
+                converted_tool_calls = []
+                for tc in msg_dict["tool_calls"]:
+                    # Convert Pydantic models to dict using model_dump()
+                    if hasattr(tc, "model_dump"):
+                        tc_dict = tc.model_dump()
+                    elif isinstance(tc, dict):
+                        tc_dict = tc.copy()
+                    else:
+                        tc_dict = tc
+                        converted_tool_calls.append(tc_dict)
+                        continue
+
+                    # Handle OpenAI format with nested function object
+                    if "function" in tc_dict and isinstance(tc_dict["function"], dict):
+                        func = tc_dict["function"]
+                        if "arguments" in func:
+                            args = func["arguments"]
+                            if isinstance(args, str):
+                                try:
+                                    func["arguments"] = json.loads(args)
+                                except json.JSONDecodeError:
+                                    pass  # Keep as string if not valid JSON
+                    # Handle direct arguments field
+                    elif "arguments" in tc_dict:
+                        args = tc_dict["arguments"]
+                        if isinstance(args, str):
+                            try:
+                                tc_dict["arguments"] = json.loads(args)
+                            except json.JSONDecodeError:
+                                pass  # Keep as string if not valid JSON
+                    converted_tool_calls.append(tc_dict)
+                msg_dict["tool_calls"] = converted_tool_calls
             conversation.append(msg_dict)
 
         if kwargs:
