@@ -1,8 +1,11 @@
 import json
+import logging
 from abc import ABC
 from typing import Any
 
 from mlx_lm.tokenizer_utils import TokenizerWrapper
+
+logger = logging.getLogger(__name__)
 
 from ..core_types import ChatTemplateResult
 from .base_tools import BaseToolParser
@@ -40,9 +43,7 @@ class ChatTemplate(ABC):
         self.has_tools = False
         self.reason_decoder = None
         self.enable_thinking_parse: bool | None = None
-        self.tools_parser: BaseToolParser | None = load_tools_parser(
-            tools_parser_type
-        )
+        self.tools_parser: BaseToolParser | None = load_tools_parser(tools_parser_type)
 
         # Initialize tool call markers with default values
         self.start_tool_calls = self.tools_parser.start_tool_calls
@@ -71,9 +72,7 @@ class ChatTemplate(ABC):
             msg_dict = message.copy()  # Make a copy to avoid modifying original
             if isinstance(msg_dict.get("content"), list):
                 msg_dict["content"] = "\n\n".join(
-                    item["text"]
-                    for item in msg_dict["content"]
-                    if item.get("type") == "text"
+                    item["text"] for item in msg_dict["content"] if item.get("type") == "text"
                 )
             # Convert tool_calls arguments from JSON string to dict for Jinja template
             # The Qwen3 chat template expects arguments as a dict, not a JSON string
@@ -97,7 +96,8 @@ class ChatTemplate(ABC):
                         if isinstance(args, str):
                             try:
                                 return json.loads(args)
-                            except json.JSONDecodeError:
+                            except json.JSONDecodeError as e:
+                                logger.debug(f"Failed to parse tool call arguments as JSON: {e}")
                                 # Keep as string if not valid JSON
                                 return args
                         return args
@@ -143,7 +143,7 @@ class ChatTemplate(ABC):
             self.has_tools = True
             # Handle different tool_choice formats:
             # 1. String type: "auto", "required", "none"
-            # 2. Dict type: {"type": "function", "function": {"name": "func_name"}} 
+            # 2. Dict type: {"type": "function", "function": {"name": "func_name"}}
             #    for forced specific function calls
             should_add_tool_calls = False
 
@@ -242,6 +242,4 @@ class ChatTemplate(ABC):
             if tool_calls:
                 content = ""
 
-        return ChatTemplateResult(
-            content=content, thinking=thinking, tool_calls=tool_calls
-        )
+        return ChatTemplateResult(content=content, thinking=thinking, tool_calls=tool_calls)
