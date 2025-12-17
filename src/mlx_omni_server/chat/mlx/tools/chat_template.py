@@ -1,7 +1,7 @@
 import json
 import logging
 from abc import ABC
-from typing import Any
+from typing import Any, Dict, List, Optional, Union
 
 from mlx_lm.tokenizer_utils import TokenizerWrapper
 
@@ -17,6 +17,24 @@ from .thinking_decoder import ThinkingDecoder
 
 # Constants
 THINK_TAG = "<think>"
+
+
+def _parse_json_arg(args: Any) -> Any:
+    """Parse JSON string argument to dict, return original if not valid JSON.
+
+    Args:
+        args: The argument value to parse (may be a JSON string or already parsed)
+
+    Returns:
+        Parsed dict/list if args was valid JSON string, otherwise original value
+    """
+    if isinstance(args, str):
+        try:
+            return json.loads(args)
+        except json.JSONDecodeError as e:
+            logger.debug(f"Failed to parse tool call arguments as JSON: {e}")
+            return args
+    return args
 
 
 def load_tools_parser(tools_parser_type: str) -> BaseToolParser:
@@ -51,9 +69,9 @@ class ChatTemplate(ABC):
 
     def apply_chat_template(
         self,
-        messages: list[dict[str, Any]],
-        tools: list[dict[str, Any]] | None = None,
-        tool_choice: str | dict[str, Any] | None = None,
+        messages: List[Dict[str, Any]],
+        tools: Optional[List[Dict[str, Any]]] = None,
+        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
         **kwargs,
     ) -> str:
         """Encode tools and conversation into a prompt string.
@@ -89,18 +107,6 @@ class ChatTemplate(ABC):
                         tc_dict = tc
                         converted_tool_calls.append(tc_dict)
                         continue
-
-                    # Helper function to parse JSON arguments
-                    def _parse_json_arg(args):
-                        """Parse JSON string argument to dict, return original if not valid JSON."""
-                        if isinstance(args, str):
-                            try:
-                                return json.loads(args)
-                            except json.JSONDecodeError as e:
-                                logger.debug(f"Failed to parse tool call arguments as JSON: {e}")
-                                # Keep as string if not valid JSON
-                                return args
-                        return args
 
                     # Handle OpenAI format with nested function object
                     if "function" in tc_dict and isinstance(tc_dict["function"], dict):
@@ -141,6 +147,9 @@ class ChatTemplate(ABC):
 
         if tools:
             self.has_tools = True
+            # Pass tools schema to parser for type conversion
+            if hasattr(self.tools_parser, "set_tools_schema"):
+                self.tools_parser.set_tools_schema(tools)
             # Handle different tool_choice formats:
             # 1. String type: "auto", "required", "none"
             # 2. Dict type: {"type": "function", "function": {"name": "func_name"}}
@@ -236,10 +245,16 @@ class ChatTemplate(ABC):
             thinking = result.get("thinking")
 
         if self.has_tools:
+            logger.info(f"parse_chat_response: has_tools=True, parser type={type(self.tools_parser).__name__}")
             tool_calls = self.tools_parser.parse_tools(content)
 
             # If tool calls were found, clear content to avoid duplication
             if tool_calls:
+                logger.info(f"parse_chat_response: found {len(tool_calls)} tool call(s)")
                 content = ""
+            else:
+                logger.info("parse_chat_response: no tool calls found by parser")
+        else:
+            logger.debug("parse_chat_response: has_tools=False, skipping tool parsing")
 
         return ChatTemplateResult(content=content, thinking=thinking, tool_calls=tool_calls)

@@ -216,21 +216,10 @@ class TestChatTemplate:
         assert isinstance(prompt, str)
 
     def test_tool_calls_json_conversion(self):
-        """Test that tool_calls JSON arguments are converted to dicts for Jinja template"""
-        # This is a unit test for the JSON conversion logic in chat_template.py
-        # We test the conversion logic directly without loading models
-
+        """Test that tool_calls JSON arguments are converted to dicts for Jinja template."""
         from mlx_omni_server.chat.mlx.tools.chat_template import ChatTemplate
 
-        # Mock tokenizer (we don't need actual tokenization for this test)
-        class MockTokenizer:
-            def apply_chat_template(self, conversation, **kwargs):
-                # Return the messages as-is for testing the conversion logic
-                return str(conversation)
-
-        chat_template = ChatTemplate(tools_parser_type="qwen3", tokenizer=MockTokenizer())
-
-        # Test with OpenAI format tool_calls (JSON string arguments)
+        # Test messages with OpenAI format tool_calls (JSON string arguments)
         messages = [
             {"role": "user", "content": "What's the weather?"},
             {
@@ -242,53 +231,35 @@ class TestChatTemplate:
                         "type": "function",
                         "function": {
                             "name": "get_weather",
-                            "arguments": '{"location": "NYC", "unit": "celsius"}',  # JSON string
+                            "arguments": '{"location": "NYC", "unit": "celsius"}',
                         },
                     }
                 ],
             },
         ]
 
-        # Test that JSON arguments are properly converted to dicts
-        # We need to verify the conversion happens before the tokenizer is called
-
-        # Create a strict mock that verifies the conversion by checking argument types
-        class StrictMockTokenizer:
-            def apply_chat_template(self, conversation, **kwargs):
-                # Verify that JSON string arguments have been converted to dicts
+        # Mock tokenizer that verifies JSON arguments were converted to dicts
+        class VerifyingMockTokenizer:
+            def apply_chat_template(self, conversation, **_kwargs):
                 for msg in conversation:
                     if "tool_calls" in msg:
                         for tc in msg["tool_calls"]:
                             if "function" in tc and isinstance(tc["function"], dict):
                                 func = tc["function"]
                                 if "arguments" in func:
-                                    # Verify arguments are dicts, not strings
                                     if isinstance(func["arguments"], str):
-                                        raise TypeError("Arguments should be dict, got string")
-                                    # Verify the conversion worked correctly
+                                        raise TypeError("Expected dict arguments")
                                     assert isinstance(func["arguments"], dict)
                                     assert func["arguments"]["location"] == "NYC"
                                     assert func["arguments"]["unit"] == "celsius"
                 return "conversion successful"
 
-        # Test with strict mock that verifies conversion
-        strict_chat_template = ChatTemplate(
-            tools_parser_type="qwen3", tokenizer=StrictMockTokenizer()
+        chat_template = ChatTemplate(
+            tools_parser_type="qwen3", tokenizer=VerifyingMockTokenizer()
         )
 
-        try:
-            result = strict_chat_template.apply_chat_template(messages=messages)
-            assert result == "conversion successful"
-            print("✓ JSON tool_calls conversion test passed - arguments properly converted to dict")
-        except TypeError as e:
-            if "Arguments should be dict, got string" in str(e):
-                raise AssertionError(
-                    "JSON conversion failed - arguments not converted to dict"
-                ) from e
-            else:
-                raise
-        except Exception as e:
-            raise AssertionError(f"Unexpected error during conversion test: {e}") from e
+        result = chat_template.apply_chat_template(messages=messages)
+        assert result == "conversion successful"
 
     def test_openai_adapter_tool_call_conversion(self):
         """Test that _convert_tool_calls function converts internal format to OpenAI format"""
