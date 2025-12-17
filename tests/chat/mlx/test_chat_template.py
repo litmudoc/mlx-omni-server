@@ -77,7 +77,7 @@ class TestChatTemplate:
                 "role": "user",
                 "content": [
                     {"type": "text", "text": "What's in this image?"},
-                    # Currently does not support image type, this part will be removed when implemented.
+                    # Image type not yet supported - will be filtered out
                     {"type": "image", "image_url": "data:image/jpeg;base64,..."},
                     {"type": "text", "text": "Please describe it."},
                 ],
@@ -158,7 +158,7 @@ class TestChatTemplate:
             messages=messages, tools=tools, tool_choice="auto"
         )
         assert chat_template2.has_tools is True
-        # auto choice should not add tool_calls prefix
+        assert not prompt_auto.strip().endswith(chat_template2.start_tool_calls)
 
         # Test none choice (should not add prefix)
         chat_template3 = ChatTemplate(tools_parser_type="llama", tokenizer=tokenizer)
@@ -166,7 +166,7 @@ class TestChatTemplate:
             messages=messages, tools=tools, tool_choice="none"
         )
         assert chat_template3.has_tools is True
-        # none choice should not add tool_calls prefix
+        assert not prompt_none.strip().endswith(chat_template3.start_tool_calls)
 
     def test_thinking_with_tools(self):
         """Test thinking mode combined with tools"""
