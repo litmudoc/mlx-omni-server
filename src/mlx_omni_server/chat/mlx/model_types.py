@@ -1,17 +1,29 @@
 """MLX Model types and management."""
 
-from typing import Optional
+from pathlib import Path
+from typing import Optional, Union
 
 import mlx.nn as nn
 from mlx_lm.tokenizer_utils import TokenizerWrapper
 from mlx_lm.utils import load, load_config
 
-# Handle mlx_lm version compatibility: newer versions use hf_repo_to_path,
-# older versions (< 0.29) use get_model_path
+# Handle mlx_lm version compatibility: newer versions use hf_repo_to_path (returns Path),
+# older versions (< 0.29) use get_model_path (returns Tuple[Path, Optional[str]])
 try:
-    from mlx_lm.utils import hf_repo_to_path as get_model_path
+    from mlx_lm.utils import hf_repo_to_path as _get_model_path
+
+    def get_model_path(model_id: str) -> Path:
+        """Get model path (wrapper for newer mlx_lm versions)."""
+        return _get_model_path(model_id)
+
 except ImportError:
-    from mlx_lm.utils import get_model_path
+    from mlx_lm.utils import get_model_path as _get_model_path
+
+    def get_model_path(model_id: str) -> Path:
+        """Get model path (wrapper for older mlx_lm versions)."""
+        result = _get_model_path(model_id)
+        # Old version returns Tuple[Path, Optional[str]], extract just the Path
+        return result[0] if isinstance(result, tuple) else result
 
 from ...utils.logger import logger
 from .tools.chat_template import ChatTemplate
