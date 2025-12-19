@@ -9,6 +9,7 @@ logger = logging.getLogger(__name__)
 
 from ..core_types import ChatTemplateResult
 from .base_tools import BaseToolParser
+from .glm45_tools_parser import GLM45ToolParser
 from .hugging_face import HuggingFaceToolParser
 from .llama3 import Llama3ToolParser
 from .mistral import MistralToolsParser
@@ -46,6 +47,8 @@ def load_tools_parser(tools_parser_type: str) -> BaseToolParser:
         return HuggingFaceToolParser()
     if tools_parser_type == "qwen3_moe":
         return Qwen3MoeToolParser()
+    if tools_parser_type == "glm4_moe":
+        return GLM45ToolParser()
     else:
         return HuggingFaceToolParser()
 
@@ -245,15 +248,15 @@ class ChatTemplate(ABC):
             thinking = result.get("thinking")
 
         if self.has_tools:
-            logger.info(f"parse_chat_response: has_tools=True, parser type={type(self.tools_parser).__name__}")
+            logger.debug(f"parse_chat_response: has_tools=True, parser type={type(self.tools_parser).__name__}")
             tool_calls = self.tools_parser.parse_tools(content)
 
             # If tool calls were found, clear content to avoid duplication
             if tool_calls:
-                logger.info(f"parse_chat_response: found {len(tool_calls)} tool call(s)")
+                logger.debug(f"parse_chat_response: found {len(tool_calls)} tool call(s)")
                 content = ""
             else:
-                logger.info("parse_chat_response: no tool calls found by parser")
+                logger.debug("parse_chat_response: no tool calls found by parser")
         else:
             logger.debug("parse_chat_response: has_tools=False, skipping tool parsing")
 

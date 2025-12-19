@@ -4,7 +4,7 @@ from typing import Optional
 
 import mlx.nn as nn
 from mlx_lm.tokenizer_utils import TokenizerWrapper
-from mlx_lm.utils import get_model_path, load, load_config
+from mlx_lm.utils import hf_repo_to_path, load, load_config
 
 from ...utils.logger import logger
 from .tools.chat_template import ChatTemplate
@@ -44,7 +44,7 @@ def load_mlx_model(
         logger.info(f"Loaded model: {model_id}")
 
         # Load configuration and create chat tokenizer
-        model_path = get_model_path(model_id)[0]
+        model_path = hf_repo_to_path(model_id)
         config = load_config(model_path)
         chat_template = ChatTemplate(config["model_type"], tokenizer)
 
