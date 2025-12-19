@@ -375,8 +375,8 @@ class OpenAIAdapter:
                 ),
             )
         except Exception as e:
-            logger.error(f"Failed to generate completion: {str(e)}", exc_info=True)
-            raise RuntimeError(f"Failed to generate completion: {str(e)}") from e
+            logger.error(f"Failed to generate completion: {e}", exc_info=True)
+            raise RuntimeError(f"Failed to generate completion: {e}") from e
 
     def generate_stream(
         self,

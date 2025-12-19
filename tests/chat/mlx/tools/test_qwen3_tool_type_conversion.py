@@ -69,7 +69,7 @@ class TestToolCallTypeConversion(unittest.TestCase):
 
         model_output = """<tool_call>
 <function=read_file>
-<parameter=path>/tmp/test.py</parameter>
+<parameter=path>example.py</parameter>
 <parameter=start_line>10</parameter>
 <parameter=end_line>20</parameter>
 </function>
@@ -77,7 +77,7 @@ class TestToolCallTypeConversion(unittest.TestCase):
 
         args = self._parse_tool_call_with_schema(model_output, tools)
 
-        self.assertEqual(args["path"], "/tmp/test.py")
+        self.assertEqual(args["path"], "example.py")
         self.assertIsInstance(args["start_line"], int)
         self.assertEqual(args["start_line"], 10)
         self.assertIsInstance(args["end_line"], int)
@@ -195,14 +195,14 @@ class TestToolCallTypeConversion(unittest.TestCase):
 
         model_output = """<tool_call>
 <function=write_file>
-<parameter=path>/tmp/test.py</parameter>
+<parameter=path>example.py</parameter>
 <parameter=encoding>null</parameter>
 </function>
 </tool_call>"""
 
         args = self._parse_tool_call_with_schema(model_output, tools)
 
-        self.assertEqual(args["path"], "/tmp/test.py")
+        self.assertEqual(args["path"], "example.py")
         self.assertIsNone(args["encoding"])
 
     # =========================================================================

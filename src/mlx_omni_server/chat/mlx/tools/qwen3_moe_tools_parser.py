@@ -173,11 +173,11 @@ class Qwen3MoeToolParser(BaseToolParser):
             else:
                 logger.debug("parse_tools: no tool calls extracted from text")
 
-            return tool_calls or None
-
         except Exception as e:
             logger.error(f"Error parsing Qwen3 MoE tool calls: {e}")
             return None
+        else:
+            return tool_calls or None
 
     def _is_strict_format(self, text: str) -> bool:
         """Check if text follows strict tool call format."""

@@ -23,7 +23,12 @@ except ImportError:
         """Get model path (wrapper for older mlx_lm versions)."""
         result = _get_model_path(model_id)
         # Old version returns Tuple[Path, Optional[str]], extract just the Path
-        return result[0] if isinstance(result, tuple) else result
+        if isinstance(result, tuple):
+            return result[0]
+        elif isinstance(result, Path):
+            return result
+        else:
+            raise TypeError(f"Unexpected return type from get_model_path: {type(result)}")
 
 from ...utils.logger import logger
 from .tools.chat_template import ChatTemplate
