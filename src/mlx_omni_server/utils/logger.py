@@ -43,6 +43,25 @@ def get_logger(name: Optional[str] = None) -> logging.Logger:
         tracebacks_extra_lines=2,
         tracebacks_show_locals=True,
     )
+    
+    # Rich 마크업 오류 방지를 위한 커스텀 렌더러 설정
+    def safe_markup_escape(text: str) -> str:
+        """Rich 마크업 오류를 방지하는 이스케이프 함수"""
+        import re
+        # Rich가 인식할 수 없는 특수 마크업 태그 이스케이프
+        text = re.sub(r'\[/?INST\]', r'\\[/INST\\]', text)
+        # 추가적인 특수 마크업 태그 이스케이프
+        text = re.sub(r'\[/?(USER|ASSISTANT|SYSTEM)\]', r'\\[\1\\]', text)
+        return text
+    
+    # 커스텀 메시지 렌더러 적용
+    def custom_render_message(record: logging.LogRecord, message: str):
+        """커스텀 메시지 렌더러"""
+        escaped_message = safe_markup_escape(str(message))
+        return Text(escaped_message)
+    
+    # 커스텀 메시지 렌더러 활성화
+    rich_handler.render_message = custom_render_message
 
     # Set custom time display function
     rich_handler.get_time = time_formatter

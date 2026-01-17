@@ -371,8 +371,15 @@ class ChatGenerator:
             )
 
         except Exception as e:
-            logger.error(f"Error during generation: {e}")
-            raise RuntimeError(f"Generation failed: {e}")
+            from ..utils.logger import safe_markup_escape
+            error_msg = str(e)
+            escaped_error_msg = safe_markup_escape(error_msg)
+            
+            # 로깅 시 이스케이프된 메시지 사용
+            logger.error(f"Error during generation: {escaped_error_msg}")
+            
+            # 예외 재발생 시 원본 메시지 유지
+            raise RuntimeError(f"Generation failed: {error_msg}") from e
 
     def generate_stream(
         self,
@@ -512,5 +519,12 @@ class ChatGenerator:
                 self.prompt_cache.extend_completion_cache(generated_tokens)
 
         except Exception as e:
-            logger.error(f"Error during stream generation: {e}")
-            raise RuntimeError(f"Stream generation failed: {e}")
+            from ..utils.logger import safe_markup_escape
+            error_msg = str(e)
+            escaped_error_msg = safe_markup_escape(error_msg)
+            
+            # 로깅 시 이스케이프된 메시지 사용
+            logger.error(f"Error during stream generation: {escaped_error_msg}")
+            
+            # 예외 재발생 시 원본 메시지 유지
+            raise RuntimeError(f"Stream generation failed: {error_msg}") from e

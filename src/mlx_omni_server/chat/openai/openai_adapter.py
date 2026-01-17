@@ -375,8 +375,16 @@ class OpenAIAdapter:
                 ),
             )
         except Exception as e:
-            logger.error(f"Failed to generate completion: {e}", exc_info=True)
-            raise RuntimeError(f"Failed to generate completion: {e}") from e
+            # Rich 마크업 오류 방지를 위해 예외 메시지 이스케이프 처리
+            from ...utils.logger import safe_markup_escape
+            error_msg = str(e)
+            escaped_error_msg = safe_markup_escape(error_msg)
+            
+            # 로깅 시 이스케이프된 메시지 사용
+            logger.error(f"Failed to generate completion: {escaped_error_msg}")
+            
+            # 예외 재발생 시 원본 메시지 유지
+            raise RuntimeError(f"Failed to generate completion: {error_msg}") from e
 
     def generate_stream(
         self,
@@ -497,5 +505,13 @@ class OpenAIAdapter:
                 )
 
         except Exception as e:
-            logger.error(f"Error during stream generation: {str(e)}", exc_info=True)
-            raise
+            # Rich 마크업 오류 방지를 위해 예외 메시지 이스케이프 처리
+            from ...utils.logger import safe_markup_escape
+            error_msg = str(e)
+            escaped_error_msg = safe_markup_escape(error_msg)
+            
+            # 로깅 시 이스케이프된 메시지 사용
+            logger.error(f"Error during stream generation: {escaped_error_msg}", exc_info=True)
+            
+            # 예외 재발생 시 원본 메시지 유지
+            raise RuntimeError(f"Stream generation failed: {error_msg}") from e

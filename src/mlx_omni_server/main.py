@@ -33,8 +33,8 @@ def build_parser():
     parser.add_argument(
         "--port",
         type=int,
-        default=10240,
-        help="Port to bind the server to, defaults to 10240",
+        default=8000,
+        help="Port to bind the server to, defaults to 8000",
     )
     parser.add_argument(
         "--workers",
