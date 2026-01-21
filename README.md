@@ -110,7 +110,7 @@ pip install mlx-omni-server
 mlx-omni-server
 
 # Custom options
-mlx-omni-server --port 8000
+mlx-omni-server --port 10240
 MLX_OMNI_LOG_LEVEL=debug mlx-omni-server
 
 # View all options
