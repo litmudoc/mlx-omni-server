@@ -1,5 +1,7 @@
 import argparse
 import os
+from pathlib import Path
+import shutil
 
 import uvicorn
 from fastapi import FastAPI
@@ -7,8 +9,25 @@ from fastapi import FastAPI
 from .middleware.logging import RequestResponseLoggingMiddleware
 from .routers import api_router
 from .utils.logger import logger, set_logger_level
+# Import PresetManager for later use if needed
+from .utils.mlx_preset import PresetManager
 
-app = FastAPI(title="MLX Omni Server")
+# Define lifespan handler function
+async def app_lifespan(app: FastAPI):
+    """Lifespan handler to run startup logic.
+
+    - Ensure user config file exists.
+    - Pre‑load the PresetManager configuration as a sanity check.
+    """
+    # Startup events
+    ensure_user_config()
+    _ = PresetManager.get_default_preset()
+    # Yield to signal that startup is complete and allow the app to run
+    yield
+    # Shutdown events can be added here if needed
+
+# Create FastAPI app with lifespan handler
+app = FastAPI(title="MLX Omni Server", lifespan=app_lifespan)
 
 # Add request/response logging middleware with custom levels
 app.add_middleware(
@@ -19,6 +38,23 @@ app.add_middleware(
 from fastapi.middleware.cors import CORSMiddleware
 
 app.include_router(api_router)
+
+
+def ensure_user_config():
+    """Ensure that the user config file exists at ``~/.mlx_preset/config.json``.
+
+    If it does not exist, copy the default config from the package directory.
+    """
+    user_cfg_dir = Path.home() / ".mlx_preset"
+    user_cfg_path = user_cfg_dir / "config.json"
+    if not user_cfg_path.is_file():
+        # Ensure directory exists
+        user_cfg_dir.mkdir(parents=True, exist_ok=True)
+        default_cfg_path = Path(__file__).parent / "mlx_preset" / "config.json"
+        shutil.copy(default_cfg_path, user_cfg_path)
+        logger.info(f"Copied default mlx preset config to {user_cfg_path}")
+    else:
+        logger.debug(f"User mlx preset config found at {user_cfg_path}")
 
 
 def build_parser():
@@ -49,7 +85,6 @@ def build_parser():
         choices=["debug", "info", "warning", "error", "critical"],
         help="Set the logging level, defaults to info",
     )
-
     parser.add_argument(
         "--cors-allow-origins",
         type=str,
@@ -68,13 +103,11 @@ def configure_cors_middleware(cors_allow_origins: str | None):
     if cors_allow_origins is None:
         origins = []
     else:
-        # Add CORS middleware with provided origins or empty list
         origins = (
             [origin.strip() for origin in cors_allow_origins.split(",")]
             if cors_allow_origins
             else []
         )
-
     app.add_middleware(
         CORSMiddleware,
         allow_origins=origins,
@@ -83,13 +116,11 @@ def configure_cors_middleware(cors_allow_origins: str | None):
         allow_headers=["*"],
     )
 
-
 configure_cors_middleware(os.environ.get("MLX_OMNI_CORS", None))
 
 
 def start():
     """Start the MLX Omni Server."""
-
     parser = build_parser()
     args = parser.parse_args()
 
@@ -101,7 +132,9 @@ def start():
     set_logger_level(logger, args.log_level)
     configure_cors_middleware(args.cors_allow_origins)
 
-    # Start server with uvicorn
+    # Ensure user preset config exists before server starts (retained for direct script execution)
+    ensure_user_config()
+
     uvicorn.run(
         "mlx_omni_server.main:app",
         host=args.host,
@@ -110,7 +143,6 @@ def start():
         use_colors=True,
         workers=args.workers,
     )
-
 
 if __name__ == "__main__":
     start()

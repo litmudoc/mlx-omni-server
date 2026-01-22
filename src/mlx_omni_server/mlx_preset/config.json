@@ -1,0 +1,186 @@
+{
+  "preset": {
+    "model_default": {
+      "_comment": "",
+      "max_kv_size": 8192,
+      "max_tokens": 4096,
+      "repetition_penalty": 1.1,
+      "temp": 0.8,      
+      "top_p": 0.9,
+      "top_k": 50,
+      "min_p": 0
+    },
+    "root4k/Qwen3-Coder-30B-A3B-Instruct-mlx-mxfp4": {
+      "_comment": "",
+      "max_kv_size": 32768,
+      "max_tokens": 4096,
+      "repetition_penalty": 1.05,
+      "temp": 0.7,
+      "top_p": 0.8,
+      "top_k": 20,
+      "min_p": 0
+    },
+    "ExaltedSlayer/unsloth-Qwen3-30B-A3B-Instruct-2507-mlx-mxfp4": {
+      "_comment": "",
+      "max_kv_size": 131072,
+      "max_tokens": 16384,
+      "repetition_penalty": 1.1,
+      "temp": 0.7,
+      "top_p": 0.8,
+      "top_k": 20,
+      "min_p": 0
+    },
+    "ExaltedSlayer/unsloth-Qwen3-30B-A3B-Thinking-2507-mlx-mxfp4": {
+      "_comment": "",
+      "max_kv_size": 131072,
+      "max_tokens": 32768,
+      "repetition_penalty": 1.1,
+      "temp": 0.6,
+      "top_p": 0.95,
+      "top_k": 20,
+      "min_p": 0
+    }
+  },
+  "slug_preset": {
+    "architect": {
+      "architect_default": {
+        "_comment": "",
+        "max_kv_size": 131072,
+        "max_tokens": 4096,
+        "repetition_penalty": 1.1,
+        "temp": 0.6,
+        "top_p": 0.9,
+        "top_k": 50,
+        "min_p": 0.05
+      },
+      "txgsync/gpt-oss-120b-Derestricted-mxfp4-mlx": {
+        "_comment": "",
+        "max_kv_size": 131072,
+        "max_tokens": 16384,
+        "repetition_penalty": 1.15,
+        "temp": 0.6,
+        "top_p": 0.92,
+        "top_k": 50,
+        "min_p": 0.08
+      }
+    },
+    "code": {
+      "code_default": {
+        "_comment": "",
+        "max_kv_size": 32768,
+        "max_tokens": 4096,
+        "repetition_penalty": 1.1,
+        "temp": 0.2,
+        "top_p": 0.95,
+        "top_k": 40,        
+        "min_p": 0.05
+      },
+      "root4k/Qwen3-Coder-30B-A3B-Instruct-mlx-mxfp4": {
+        "_comment": "",
+        "max_kv_size": 16384,
+        "max_tokens": 2048,
+        "repetition_penalty": 1.1,
+        "temp": 0.2,
+        "top_p": 0.95,
+        "top_k": 40,        
+        "min_p": 0.05
+      },
+      "kloseli/MiniMax-M2.1-REAP-50-mlx-mxfp4": {
+        "_comment": "",
+        "max_kv_size": 65536,
+        "max_tokens": 8192,
+        "repetition_penalty": 1.2,
+        "temp": 0.2,
+        "top_p": 0.9,        
+        "top_k": 50,
+        "min_p": 0.05
+      },
+      "catalystsec/MiniMax-M2.1-3bit-DWQ": {
+        "_comment": "",
+        "max_kv_size": 65536,
+        "max_tokens": 8192,
+        "repetition_penalty": 1.2,
+        "temp": 0.2,
+        "top_p": 0.9,        
+        "top_k": 40,
+        "min_p": 0.05
+      },
+      "root4k/Devstral-2-123B-Instruct-2512-mlx-mxfp4": {
+        "_comment": "",
+        "max_kv_size": 8192,
+        "max_tokens": 4096,
+        "repetition_penalty": 1.1,
+        "temp": 0.15,
+        "top_p": 0.9,        
+        "top_k": 40,
+        "min_p": 0.01
+      }
+    },
+    "ask": {
+      "ask_default": {
+        "_comment": "",
+        "max_kv_size": 32768,
+        "max_tokens": 4096,
+        "repetition_penalty": 1.1,
+        "temp": 0.7,
+        "top_p": 0.95,
+        "top_k": 45,
+        "min_p": 0.05
+      },
+      "root4k/Qwen3-Next-80B-A3B-Instruct-mlx-mxfp4": {
+        "_comment": "",
+        "max_kv_size": 32768,
+        "max_tokens": 4096,
+        "repetition_penalty": 1.1,
+        "temp": 0.7,
+        "top_p": 0.95,        
+        "top_k": 45,
+        "min_p": 0.04
+      }
+    },
+    "debug": {
+      "debug_default": {
+        "_comment": "",
+        "max_kv_size": 65536,
+        "max_tokens": 8192,
+        "repetition_penalty": 1.1,
+        "temp": 0.7,
+        "top_p": 0.95,
+        "top_k": 50,
+        "min_p": 0.05
+      },
+      "root4k/Qwen3-Next-80B-A3B-Thinking-mlx-mxfp4": {
+        "_comment": "",
+        "max_kv_size": 131072,
+        "max_tokens": 16384,
+        "repetition_penalty": 1.1,
+        "temp": 1.0,
+        "top_p": 0.88,        
+        "top_k": 35,
+        "min_p": 0.06
+      }
+    },
+    "orchestrator": {
+      "orchestrator_default": {
+        "_comment": "",
+        "max_kv_size": 32768,
+        "max_tokens": 8192,
+        "repetition_penalty": 1.1,
+        "temp": 0.6,
+        "top_p": 0.9,
+        "top_k": 50,
+        "min_p": 0.05
+      },
+      "huihui-ai/Huihui-GLM-4.5-Air-abliterated-mlx-mxfp4": {
+        "_comment": "",
+        "max_kv_size": 65536,
+        "max_tokens": 8192,
+        "repetition_penalty": 1.15,
+        "temp": 0.5,
+        "top_p": 0.9,        
+        "top_k": 45,
+        "min_p": 0.07
+      }
+    }
+  }
+}
