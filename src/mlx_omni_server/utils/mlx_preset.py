@@ -5,7 +5,7 @@ class PresetManager:
     """Utility class to manage sampling preset configurations.
 
     The configuration is stored in ``src/mlx_omni_server/mlx_preset/config.json``.
-    It provides convenient accessors for model‑specific presets, slug‑based
+    It provides convenient accessors for model-specific presets, slug-based
     presets and a simple update mechanism.
     """
 
@@ -42,8 +42,8 @@ class PresetManager:
         """Retrieve a preset defined for a UI slug and mode.
 
         Args:
-            slug: Top‑level key under ``"slug_preset"``.
-            mode: Sub‑key inside the slug (e.g., "code", "architect").
+            slug: Top-level key under ``"slug_preset"``.
+            mode: Sub-key inside the slug (e.g., "code", "architect").
 
         Returns:
             dict of parameters or empty dict.

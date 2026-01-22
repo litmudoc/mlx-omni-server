@@ -17,7 +17,7 @@ async def app_lifespan(app: FastAPI):
     """Lifespan handler to run startup logic.
 
     - Ensure user config file exists.
-    - Pre‑load the PresetManager configuration as a sanity check.
+    - Pre-load the PresetManager configuration as a sanity check.
     """
     # Startup events
     ensure_user_config()
