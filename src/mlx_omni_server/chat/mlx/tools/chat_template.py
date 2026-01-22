@@ -41,7 +41,7 @@ def _parse_json_arg(args: Any) -> Any:
 def load_tools_parser(tools_parser_type: str) -> BaseToolParser:
     if tools_parser_type == "llama":
         return Llama3ToolParser()
-    if tools_parser_type == "mistral":
+    if tools_parser_type == "mistral" or tools_parser_type == "mistral3":
         return MistralToolsParser()
     if tools_parser_type == "qwen2" or tools_parser_type == "qwen3":
         return HuggingFaceToolParser()
