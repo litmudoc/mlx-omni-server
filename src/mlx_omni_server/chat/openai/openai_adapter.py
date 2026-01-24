@@ -181,7 +181,7 @@ class OpenAIAdapter:
                 for tool in request.tools
             ]
 
-        logger.info(f"slug(mode): {_current_mode}")
+        logger.info(f"🧰 slug(mode): {_current_mode}")
         logger.debug(f"messages: {messages}")
         logger.info(f"template_kwargs: {template_kwargs}")
 

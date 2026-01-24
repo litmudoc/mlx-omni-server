@@ -201,7 +201,7 @@ class AnthropicMessagesAdapter:
             "top_k": request.top_k or 0,
         }
 
-        logger.info(f"slug(mode): {_current_mode}")
+        logger.info(f"🧰 slug(mode): {_current_mode}")
         logger.info(f"Anthropic messages: {messages}")
         logger.info(f"Anthropic template_kwargs: {template_kwargs}")
 
