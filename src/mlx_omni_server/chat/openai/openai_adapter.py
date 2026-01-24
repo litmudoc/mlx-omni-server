@@ -121,6 +121,20 @@ class OpenAIAdapter:
         extra_params = request.get_extra_params()
         extra_body = extra_params.get("extra_body", {})
 
+        # --- Added extraction of current mode from request messages ---
+        import re
+        _current_mode: Optional[str] = None
+        env_pattern = re.compile(r"<environment_details>.*?<slug>{([^}]+)}</slug>.*?</environment_details>", re.DOTALL)
+        for msg in request.messages:
+            if isinstance(msg.content, str):
+                match = env_pattern.search(msg.content)
+                if match:
+                    _current_mode = match.group(1).strip()
+                    break
+        if _current_mode is not None:
+            template_kwargs["_current_mode"] = _current_mode
+        # -----------------------------------------------------
+
         # Prepare sampler configuration
         sampler_config = {
             "temp": 1.0 if request.temperature is None else request.temperature,

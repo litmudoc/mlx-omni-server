@@ -178,6 +178,20 @@ class AnthropicMessagesAdapter:
             template_kwargs["enable_thinking"] = True
             # template_kwargs["thinking_budget"] = request.thinking.budget_tokens
 
+        # --- Added extraction of current mode from request messages ---
+        import re
+        _current_mode: Optional[str] = None
+        env_pattern = re.compile(r"<environment_details>.*?<slug>{([^}]+)}</slug>.*?</environment_details>", re.DOTALL)
+        for msg in request.messages:
+            if isinstance(msg.content, str):
+                match = env_pattern.search(msg.content)
+                if match:
+                    _current_mode = match.group(1).strip()
+                    break
+        if _current_mode is not None:
+            template_kwargs["_current_mode"] = _current_mode
+        # -----------------------------------------------------
+
         # Prepare sampler configuration
         sampler_config = {
             "temp": request.temperature or 1.0,
