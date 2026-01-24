@@ -6,7 +6,7 @@ from typing import Any, Callable, Dict, Generator, List, Optional, Union
 from mlx_lm.generate import stream_generate
 from mlx_lm.sample_utils import make_sampler
 
-from mlx_omni_server.utils.logger import logger
+from mlx_omni_server.utils.logger import logger, safe_markup_escape
 from .core_types import (
     CompletionContent,
     CompletionResult,
@@ -371,7 +371,6 @@ class ChatGenerator:
             )
 
         except Exception as e:
-            from ..utils.logger import safe_markup_escape
             error_msg = str(e)
             escaped_error_msg = safe_markup_escape(error_msg)
             
@@ -519,7 +518,6 @@ class ChatGenerator:
                 self.prompt_cache.extend_completion_cache(generated_tokens)
 
         except Exception as e:
-            from ..utils.logger import safe_markup_escape
             error_msg = str(e)
             escaped_error_msg = safe_markup_escape(error_msg)
             

@@ -127,6 +127,7 @@ class OpenAIAdapter:
         env_pattern = re.compile(r"<environment_details>.*?<slug>\s*([^<]+?)\s*</slug>.*?</environment_details>", re.DOTALL)
         for msg in request.messages:
             if isinstance(msg.content, str):
+                logger.info(f"msg.content: {msg.content}")
                 match = env_pattern.search(msg.content)
                 if match:
                     _current_mode = match.group(1).strip()
