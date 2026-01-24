@@ -25,7 +25,7 @@ class PresetManager:
         return cls._cache
 
     @classmethod
-    def get_preset_by_preset_model_name(cls, preset: str,model_name: str) -> dict:
+    def get_preset_by_preset_model_name(cls, preset: str = 'preset', model_name: str = 'default') -> dict:
         """Return the preset for a specific model.
 
         Args:
@@ -38,7 +38,7 @@ class PresetManager:
         return cfg.get(preset, {}).get(model_name, {})
 
     @classmethod
-    def get_default_preset(cls, preset: str = "preset") -> dict:
+    def get_default_preset(cls, preset: str = 'preset') -> dict:
         """Return the generic default model preset.
         """
         cfg = cls._load_config()

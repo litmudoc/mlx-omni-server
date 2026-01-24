@@ -208,6 +208,7 @@ class ChatCompletionRequest(BaseModel):
     messages: List[ChatMessage]
     temperature: Optional[float] = Field(1.0, ge=0, le=2)
     top_p: Optional[float] = Field(1.0, ge=0, le=1)
+    max_kv_size: Optional[int] = None
     max_tokens: Optional[int] = None
     max_completion_tokens: Optional[int] = None
     stream: Optional[bool] = False
@@ -251,6 +252,7 @@ class ChatCompletionRequest(BaseModel):
             "messages",
             "temperature",
             "top_p",
+            "max_kv_size",
             "max_tokens",
             "max_completion_tokens",
             "stream",

@@ -20,6 +20,7 @@ from mlx_omni_server.chat.openai.schema import (
     ToolCall,
 )
 from mlx_omni_server.utils.logger import logger, safe_markup_escape
+from mlx_omni_server.utils.mlx_preset import PresetManager
 
 # Tool call XML markers used by models like Qwen3-Coder
 TOOL_CALL_MARKERS = ["<tool_call>", "<function="]
@@ -115,7 +116,6 @@ class OpenAIAdapter:
 
     def _prepare_generation_params(self, request: ChatCompletionRequest) -> dict:
         """Prepare common parameters for both generate and stream_generate."""
-        max_tokens = request.max_completion_tokens or request.max_tokens or self._default_max_tokens
 
         # Extract parameters from request and extra params
         extra_params = request.get_extra_params()
@@ -151,20 +151,23 @@ class OpenAIAdapter:
             if msg is None:
                 continue
             text_blob = flatten_to_text(msg)
-            logger.debug(f"Flattened message content for mode extraction: {text_blob}")
             matches = env_pattern.findall(text_blob)
             if matches:
                 current_mode = matches[-1].strip()
         # -----------------------------------------------------
 
-        # Prepare sampler configuration
-        sampler_config = {
-            "temp": 1.0 if request.temperature is None else request.temperature,
-            "top_p": 1.0 if request.top_p is None else request.top_p,
-            "top_k": extra_body.get("top_k", 0),
-        }
+        # Prepare sampler configuration and preset selection
+        sampler_config = {}
+
+        # Add sampler parameters from body
+        if request.temperature is not None and request.temperature > 0.0:
+            sampler_config["temp"] = request.temperature
+        #if request.top_p is not None:
+        #    sampler_config["top_p"] = request.top_p
 
         # Add additional sampler parameters from extra_body
+        if extra_body.get("top_k") is not None:
+            sampler_config["top_k"] = extra_body.get("top_k")
         if extra_body.get("min_p") is not None:
             sampler_config["min_p"] = extra_body.get("min_p")
         if extra_body.get("min_tokens_to_keep") is not None:
@@ -174,13 +177,53 @@ class OpenAIAdapter:
         if extra_body.get("xtc_threshold") is not None:
             sampler_config["xtc_threshold"] = extra_body.get("xtc_threshold")
 
-        # Prepare template parameters - include both extra_body and direct extra params
+        # Prepare template parameters from extra_body
         template_kwargs = dict(extra_body)
+
+        # Determine preset based on current mode and model
+        preset_cfg = {}
+        if current_mode is None:
+            preset_cfg = PresetManager.get_preset_by_preset_model_name("preset", request.model)
+            if not preset_cfg:
+                logger.debug(f"🔥 using default preset for model '{request.model}'")
+                preset_cfg = PresetManager.get_default_preset("preset")
+        else:
+            preset_cfg = PresetManager.get_preset_by_preset_model_name(current_mode, request.model)
+            if not preset_cfg:
+                logger.debug(f"🧰 No preset found for mode '{current_mode}' and model '{request.model}', using default preset")
+                preset_cfg = PresetManager.get_default_preset(current_mode)
+            else:
+                preset_cfg = PresetManager.get_preset_by_preset_model_name("preset", request.model)
+                if not preset_cfg:
+                    logger.debug(f"🚨 Last loading default preset for model '{request.model}'")
+                    preset_cfg = PresetManager.get_default_preset("preset")
+
+        if preset_cfg.get("max_kv_size") is not None:
+            self._default_max_kv_size = preset_cfg["max_kv_size"]
+        if preset_cfg.get("max_tokens") is not None:
+            self._default_max_tokens = preset_cfg["max_tokens"]
+        if preset_cfg.get("repetition_penalty") is not None:
+            self._repetition_penalty = preset_cfg["repetition_penalty"]
+
+        # Merge preset values into sampler_config
+        for key in ["temp", "top_p", "top_k", "min_p"]:
+            if key in preset_cfg and key not in sampler_config:
+                sampler_config[key] = preset_cfg[key]
+
+        # Merge preset configuration into template_kwargs
+        #template_kwargs.update(preset_cfg)
+        for key in ["repetition_penalty", "max_kv_size", "kv_bits"]:
+            if key in preset_cfg and key not in template_kwargs:
+                template_kwargs[key] = preset_cfg[key]
 
         # Handle direct extra parameters (for backward compatibility)
         for key in ["enable_thinking"]:
             if key in extra_params:
                 template_kwargs[key] = extra_params[key]
+
+        max_kv_size = request.max_kv_size or preset_cfg.get("max_kv_size", 8192)
+        max_tokens = request.max_completion_tokens or request.max_tokens or self._default_max_tokens
+        repetition_penalty = request.presence_penalty or preset_cfg.get("repetition_penalty", 1.1)
 
         # Convert messages to dict format
         messages = [
@@ -201,9 +244,12 @@ class OpenAIAdapter:
                 for tool in request.tools
             ]
 
+        logger.debug(f"📜 messages: {messages}")
+        logger.info(f"🔍 model_name: {request.model}")
         logger.info(f"🧰 slug(mode): {current_mode}")
-        #logger.debug(f"messages: {messages}")
-        logger.info(f"template_kwargs: {template_kwargs}")
+        logger.debug(f"💿 preset_cfg): {preset_cfg}")
+        logger.info(f"💿 sampler_config: {sampler_config}")
+        logger.info(f"💿 template_kwargs: {template_kwargs}")
 
         json_schema = None
         if request.response_format and request.response_format.json_schema:
@@ -212,12 +258,13 @@ class OpenAIAdapter:
         return {
             "messages": messages,
             "tools": tools,
+            "max_kv_size": max_kv_size,
             "max_tokens": max_tokens,
             "sampler": sampler_config,
             "top_logprobs": request.top_logprobs if request.logprobs else None,
             "template_kwargs": template_kwargs,
             "enable_prompt_cache": True,
-            "repetition_penalty": request.presence_penalty,
+            "repetition_penalty": repetition_penalty,
             "json_schema": json_schema,
         }
 

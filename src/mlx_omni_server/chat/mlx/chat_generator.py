@@ -196,7 +196,7 @@ class ChatGenerator:
             **template_kwargs,
         )
 
-        logger.debug(f"Encoded prompt: {prompt}")
+        #logger.debug(f"Encoded prompt: {prompt}")
         return prompt
 
     def _create_mlx_kwargs(
@@ -219,7 +219,11 @@ class ChatGenerator:
             Dictionary of kwargs for mlx-lm generate functions
         """
         # Core MLX parameters
+        logger.debug(f"💿 Applying max_kv_size: {kwargs.get('max_kv_size', None)}")
+        logger.debug(f"💿 Applying max_tokens: {max_tokens}")
+        logger.debug(f"💿 Applying repetition penalty: {repetition_penalty}")
         mlx_kwargs = {
+            "max_kv_size": kwargs.get("max_kv_size", 8192),
             "max_tokens": max_tokens,
         }
 
@@ -245,7 +249,6 @@ class ChatGenerator:
         repetition_penalty = kwargs.pop("repetition_penalty", None)
         if repetition_penalty is not None:
             from mlx_lm.sample_utils import make_logits_processors
-
             processors = make_logits_processors(repetition_penalty=repetition_penalty)
             logits_processors.extend(processors)
 
@@ -276,7 +279,6 @@ class ChatGenerator:
         for key, value in kwargs.items():
             if value is not None:
                 mlx_kwargs[key] = value
-
         return mlx_kwargs
 
     def generate(
@@ -443,7 +445,8 @@ class ChatGenerator:
                 max_tokens=max_tokens,
                 **kwargs,
             )
-
+            logger.debug(f"💿 MLX generation kwargs: {mlx_kwargs}")
+            logger.debug(f"💿 MLX generation sampler: {sampler}")
             # Add cache to kwargs if available
             if enable_prompt_cache and self.prompt_cache.cache:
                 mlx_kwargs["prompt_cache"] = self.prompt_cache.cache
