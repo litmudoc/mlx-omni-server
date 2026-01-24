@@ -196,7 +196,7 @@ class ChatGenerator:
             **template_kwargs,
         )
 
-        #logger.debug(f"Encoded prompt: {prompt}")
+        logger.debug(f"Encoded prompt: {prompt}")
         return prompt
 
     def _create_mlx_kwargs(
