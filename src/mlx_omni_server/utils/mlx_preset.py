@@ -38,33 +38,11 @@ class PresetManager:
         return cfg.get(preset, {}).get(model_name, {})
 
     @classmethod
-    def get_preset_by_preset_slug_model_name(cls, preset: str, slug: str, mode_name: str) -> dict:
-        """Retrieve a preset defined for a UI slug and mode.
-
-        Args:
-            preset: Top-level key under "preset", "slug_preset.
-            slug: Sub-key inside the slug (e.g., "code", "architect").
-            model_name: Key under "slug" in the JSON.
-
-        Returns:
-            dict of parameters or empty dict.
-        """
-        cfg = cls._load_config()
-        return cfg.get(preset, {}).get(slug, {}).get(mode_name, {})
-
-    @classmethod
-    def get_default_preset(cls, preset: str) -> dict:
+    def get_default_preset(cls, preset: str = "preset") -> dict:
         """Return the generic default model preset.
         """
         cfg = cls._load_config()
         return cfg.get(preset, {}).get("default", {})
-
-    @classmethod
-    def get_default_slug_preset(cls, preset: str, slug: str) -> dict:
-        """Return the generic default model preset.
-        """
-        cfg = cls._load_config()
-        return cfg.get(preset, {}).get(slug, {}).get("default", {})
 
     @classmethod
     def update_preset(cls, key_path: list[str], value) -> None:
