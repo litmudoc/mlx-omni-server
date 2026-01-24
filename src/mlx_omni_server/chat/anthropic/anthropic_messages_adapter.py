@@ -202,7 +202,7 @@ class AnthropicMessagesAdapter:
         }
 
         logger.info(f"🧰 slug(mode): {_current_mode}")
-        logger.info(f"Anthropic messages: {messages}")
+        logger.debug(f"Anthropic messages: {messages}")
         logger.info(f"Anthropic template_kwargs: {template_kwargs}")
 
         params = {
