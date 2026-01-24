@@ -121,20 +121,40 @@ class OpenAIAdapter:
         extra_params = request.get_extra_params()
         extra_body = extra_params.get("extra_body", {})
 
-        # --- Added extraction of current mode from request messages ---
+        # --- Improved extraction of current mode from request messages ---
+        def flatten_to_text(obj: Any) -> str:
+            """
+            msg.content 가 dict/list/str/기타 타입이 섞여 있어도
+            전체를 문자열로 "순서 유지하며" 펼쳐서 반환.
+            """
+            if obj is None:
+                return ""
+            if isinstance(obj, str):
+                return obj
+            if isinstance(obj, (bytes, bytearray)):
+                try:
+                    return obj.decode("utf-8", errors="ignore")
+                except Exception:
+                    return ""
+            if isinstance(obj, dict):
+                # dict는 value들을 순서대로(파이썬 3.7+ insertion order) 펼침
+                return " ".join(flatten_to_text(v) for v in obj.values())
+            if isinstance(obj, (list, tuple, set)):
+                return " ".join(flatten_to_text(v) for v in obj)
+            # 숫자/불리언 등은 문자열화
+            return str(obj)
+        
         import re
-        _current_mode: Optional[str] = None
+        current_mode: Optional[str] = None
         env_pattern = re.compile(r"<environment_details>.*?<slug>\s*([^<]+?)\s*</slug>.*?</environment_details>", re.DOTALL)
         for msg in request.messages:
-            if isinstance(msg.content, list):
-                #logger.debug(f"msg.content: {msg.content}")
-                for content_part in msg.content:
-                    #logger.debug(f"content: {content_part}")
-                    if isinstance(content_part, dict) and content_part.get("type") == "text":
-                        match = env_pattern.search(content_part.get("text", ""))
-                        if match:
-                            _current_mode = match.group(1).strip()
-                            break
+            if msg is None:
+                continue
+            text_blob = flatten_to_text(msg)
+            logger.debug(f"Flattened message content for mode extraction: {text_blob}")
+            matches = env_pattern.findall(text_blob)
+            if matches:
+                current_mode = matches[-1].strip()
         # -----------------------------------------------------
 
         # Prepare sampler configuration
@@ -181,8 +201,8 @@ class OpenAIAdapter:
                 for tool in request.tools
             ]
 
-        logger.info(f"🧰 slug(mode): {_current_mode}")
-        logger.debug(f"messages: {messages}")
+        logger.info(f"🧰 slug(mode): {current_mode}")
+        #logger.debug(f"messages: {messages}")
         logger.info(f"template_kwargs: {template_kwargs}")
 
         json_schema = None
