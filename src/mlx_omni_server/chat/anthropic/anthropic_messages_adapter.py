@@ -28,7 +28,7 @@ from mlx_omni_server.chat.anthropic.anthropic_schema import (
     Usage,
 )
 from mlx_omni_server.chat.mlx.chat_generator import ChatGenerator
-from mlx_omni_server.utils.logger import logger
+from mlx_omni_server.utils.logger import logger, safe_markup_escape
 
 
 class AnthropicMessagesAdapter:
@@ -181,15 +181,13 @@ class AnthropicMessagesAdapter:
         # --- Added extraction of current mode from request messages ---
         import re
         _current_mode: Optional[str] = None
-        env_pattern = re.compile(r"<environment_details>.*?<slug>{([^}]+)}</slug>.*?</environment_details>", re.DOTALL)
+        env_pattern = re.compile(r"<environment_details>.*?<slug>\s*([^<]+?)\s*</slug>.*?</environment_details>", re.DOTALL)
         for msg in request.messages:
             if isinstance(msg.content, str):
                 match = env_pattern.search(msg.content)
                 if match:
                     _current_mode = match.group(1).strip()
                     break
-        if _current_mode is not None:
-            template_kwargs["_current_mode"] = _current_mode
         # -----------------------------------------------------
 
         # Prepare sampler configuration
@@ -199,6 +197,7 @@ class AnthropicMessagesAdapter:
             "top_k": request.top_k or 0,
         }
 
+        logger.info(f"slug(mode): {_current_mode}")
         logger.info(f"Anthropic messages: {messages}")
         logger.info(f"Anthropic template_kwargs: {template_kwargs}")
 

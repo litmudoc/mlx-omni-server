@@ -19,7 +19,7 @@ from mlx_omni_server.chat.openai.schema import (
     Role,
     ToolCall,
 )
-from mlx_omni_server.utils.logger import logger
+from mlx_omni_server.utils.logger import logger, safe_markup_escape
 
 # Tool call XML markers used by models like Qwen3-Coder
 TOOL_CALL_MARKERS = ["<tool_call>", "<function="]
@@ -124,15 +124,13 @@ class OpenAIAdapter:
         # --- Added extraction of current mode from request messages ---
         import re
         _current_mode: Optional[str] = None
-        env_pattern = re.compile(r"<environment_details>.*?<slug>{([^}]+)}</slug>.*?</environment_details>", re.DOTALL)
+        env_pattern = re.compile(r"<environment_details>.*?<slug>\s*([^<]+?)\s*</slug>.*?</environment_details>", re.DOTALL)
         for msg in request.messages:
             if isinstance(msg.content, str):
                 match = env_pattern.search(msg.content)
                 if match:
                     _current_mode = match.group(1).strip()
                     break
-        if _current_mode is not None:
-            template_kwargs["_current_mode"] = _current_mode
         # -----------------------------------------------------
 
         # Prepare sampler configuration
@@ -179,6 +177,7 @@ class OpenAIAdapter:
                 for tool in request.tools
             ]
 
+        logger.info(f"slug(mode): {_current_mode}")
         logger.info(f"messages: {messages}")
         logger.info(f"template_kwargs: {template_kwargs}")
 
@@ -390,7 +389,6 @@ class OpenAIAdapter:
             )
         except Exception as e:
             # Rich 마크업 오류 방지를 위해 예외 메시지 이스케이프 처리
-            from ...utils.logger import safe_markup_escape
             error_msg = str(e)
             escaped_error_msg = safe_markup_escape(error_msg)
             
@@ -520,7 +518,6 @@ class OpenAIAdapter:
 
         except Exception as e:
             # Rich 마크업 오류 방지를 위해 예외 메시지 이스케이프 처리
-            from ...utils.logger import safe_markup_escape
             error_msg = str(e)
             escaped_error_msg = safe_markup_escape(error_msg)
             
