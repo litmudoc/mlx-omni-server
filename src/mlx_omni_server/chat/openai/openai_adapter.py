@@ -126,12 +126,15 @@ class OpenAIAdapter:
         _current_mode: Optional[str] = None
         env_pattern = re.compile(r"<environment_details>.*?<slug>\s*([^<]+?)\s*</slug>.*?</environment_details>", re.DOTALL)
         for msg in request.messages:
-            if isinstance(msg.content, str):
-                logger.info(f"msg.content: {msg.content}")
-                match = env_pattern.search(msg.content)
-                if match:
-                    _current_mode = match.group(1).strip()
-                    break
+            if isinstance(msg.content, list):
+                #logger.debug(f"msg.content: {msg.content}")
+                for content_part in msg.content:
+                    #logger.debug(f"content: {content_part}")
+                    if isinstance(content_part, dict) and content_part.get("type") == "text":
+                        match = env_pattern.search(content_part.get("text", ""))
+                        if match:
+                            _current_mode = match.group(1).strip()
+                            break
         # -----------------------------------------------------
 
         # Prepare sampler configuration
@@ -179,7 +182,7 @@ class OpenAIAdapter:
             ]
 
         logger.info(f"slug(mode): {_current_mode}")
-        logger.info(f"messages: {messages}")
+        logger.debug(f"messages: {messages}")
         logger.info(f"template_kwargs: {template_kwargs}")
 
         json_schema = None
