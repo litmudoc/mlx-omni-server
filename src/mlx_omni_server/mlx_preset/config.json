@@ -84,6 +84,16 @@
       "top_k": 40,
       "min_p": 0.05
     },
+    "huihui-ai/Huihui-GLM-4.5-Air-abliterated-mlx-mxfp4": {
+      "_comment": "",
+      "max_kv_size": 65536,
+      "max_tokens": 16384,
+      "repetition_penalty": 1.05,
+      "temp": 0.35,
+      "top_p": 0.9,
+      "top_k": 40,
+      "min_p": 0.00
+    },
     "kloseli/MiniMax-M2.1-REAP-50-mlx-mxfp4": {
       "_comment": "",
       "max_kv_size": 65536,
