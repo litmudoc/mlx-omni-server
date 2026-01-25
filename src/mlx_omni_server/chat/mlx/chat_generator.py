@@ -219,10 +219,8 @@ class ChatGenerator:
             Dictionary of kwargs for mlx-lm generate functions
         """
         # Core MLX parameters
-        logger.debug(f"💿 Applying max_kv_size: {kwargs.get('max_kv_size', None)}")
-        logger.debug(f"💿 Applying max_tokens: {max_tokens}")
         mlx_kwargs = {
-            "max_kv_size": kwargs.get("max_kv_size", 8192),
+            "max_kv_size": kwargs.pop("max_kv_size", 4096),
             "max_tokens": max_tokens,
         }
 
