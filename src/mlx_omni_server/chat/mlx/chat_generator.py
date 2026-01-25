@@ -221,7 +221,7 @@ class ChatGenerator:
         # Core MLX parameters
         logger.debug(f"💿 Applying max_kv_size: {kwargs.get('max_kv_size', None)}")
         logger.debug(f"💿 Applying max_tokens: {max_tokens}")
-        logger.debug(f"💿 Applying repetition penalty: {repetition_penalty}")
+        logger.debug(f"💿 Applying repetition penalty: {kwargs.get('repetition_penalty', None)}")
         mlx_kwargs = {
             "max_kv_size": kwargs.get("max_kv_size", 8192),
             "max_tokens": max_tokens,
