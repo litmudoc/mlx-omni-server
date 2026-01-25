@@ -9,7 +9,9 @@ class PresetManager:
     presets and a simple update mechanism.
     """
 
-    _config_path = Path(__file__).parent.parent / "mlx_preset" / "config.json"
+    user_cfg_path = Path.home() / ".mlx_preset" / "config.json"
+    _default_path = Path(__file__).parent.parent / "mlx_preset" / "config.json"
+    _config_path = user_cfg_path if user_cfg_path.is_file() else _default_path
     _cache = None
 
     @classmethod

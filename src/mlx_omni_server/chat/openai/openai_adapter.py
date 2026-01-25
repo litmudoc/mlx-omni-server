@@ -182,28 +182,26 @@ class OpenAIAdapter:
 
         # Determine preset based on current mode and model
         preset_cfg = {}
-        if current_mode is None:
-            preset_cfg = PresetManager.get_preset_by_preset_model_name("preset", request.model)
-            if not preset_cfg:
-                logger.debug(f"🔥 using default preset for model '{request.model}'")
-                preset_cfg = PresetManager.get_default_preset("preset")
-        else:
-            preset_cfg = PresetManager.get_preset_by_preset_model_name(current_mode, request.model)
-            if not preset_cfg:
-                logger.debug(f"🧰 No preset found for mode '{current_mode}' and model '{request.model}', using default preset")
-                preset_cfg = PresetManager.get_default_preset(current_mode)
+        if current_mode is not None:
+            preset_cfg = PresetManager.get_preset_by_preset_model_name(
+                preset=current_mode,
+                model_name=request.model,
+            ) or {}
+            if preset_cfg is not None and len(preset_cfg) >= 1:
+                logger.info(f"🧰 Using preset '{current_mode}' for model '{request.model}'")
             else:
-                preset_cfg = PresetManager.get_preset_by_preset_model_name("preset", request.model)
-                if not preset_cfg:
-                    logger.debug(f"🚨 Last loading default preset for model '{request.model}'")
-                    preset_cfg = PresetManager.get_default_preset("preset")
-
-        if preset_cfg.get("max_kv_size") is not None:
-            self._default_max_kv_size = preset_cfg["max_kv_size"]
-        if preset_cfg.get("max_tokens") is not None:
-            self._default_max_tokens = preset_cfg["max_tokens"]
-        if preset_cfg.get("repetition_penalty") is not None:
-            self._repetition_penalty = preset_cfg["repetition_penalty"]
+                preset_cfg = PresetManager.get_default_preset(
+                    preset=current_mode,
+                )
+                if preset_cfg is None or len(preset_cfg) >= 0:
+                    logger.info(f"🔥 No model found in '{current_mode}'; using default preset")
+                else:
+                    preset_cfg = PresetManager.get_default_preset()
+                    logger.info(f"🚨 No preset slug found in messages; using default preset")
+                logger.info(f"🔍 No '{request.model}' found for '{current_mode}'")
+        else:
+            preset_cfg = PresetManager.get_default_preset()
+            logger.info(f"🚨 No preset slug found in messages; using default preset")
 
         # Merge preset values into sampler_config
         for key in ["temp", "top_p", "top_k", "min_p"]:
