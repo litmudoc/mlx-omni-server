@@ -84,6 +84,16 @@
       "top_k": 40,
       "min_p": 0.05
     },
+    "mlx-community/mistralai_Devstral-Small-2-24B-Instruct-2512-MLX-8Bit": {
+      "_comment": "",
+      "max_kv_size": 65536,
+      "max_tokens": 16384,
+      "repetition_penalty": 1.05,
+      "temp": 0.15,
+      "top_p": 0.9,
+      "top_k": 40,
+      "min_p": 0.01
+    },
     "huihui-ai/Huihui-GLM-4.5-Air-abliterated-mlx-mxfp4": {
       "_comment": "",
       "max_kv_size": 65536,
