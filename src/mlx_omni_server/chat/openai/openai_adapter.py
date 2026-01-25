@@ -219,8 +219,8 @@ class OpenAIAdapter:
             if key in extra_params:
                 template_kwargs[key] = extra_params[key]
 
-        max_kv_size = request.max_kv_size or preset_cfg.get("max_kv_size", 8192)
-        max_tokens = request.max_completion_tokens or request.max_tokens or self._default_max_tokens
+        max_kv_size = request.max_kv_size or preset_cfg.get("max_kv_size", 4096)
+        max_tokens = request.max_completion_tokens or request.max_tokens or preset_cfg.get("max_tokens", 2048)
         repetition_penalty = request.presence_penalty or preset_cfg.get("repetition_penalty", 1.1)
 
         # Convert messages to dict format
