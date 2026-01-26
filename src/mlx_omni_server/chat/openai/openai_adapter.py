@@ -182,26 +182,32 @@ class OpenAIAdapter:
 
         # Determine preset based on current mode and model
         preset_cfg = {}
-        if current_mode is not None:
-            preset_cfg = PresetManager.get_preset_by_preset_model_name(
-                preset=current_mode,
-                model_name=request.model,
-            ) or {}
-            if preset_cfg is not None and len(preset_cfg) >= 1:
-                logger.info(f"🧰 Using preset '{current_mode}' for model '{request.model}'")
-            else:
-                preset_cfg = PresetManager.get_default_preset(
-                    preset=current_mode,
-                )
-                if preset_cfg is None or len(preset_cfg) >= 0:
-                    logger.info(f"🔥 No model found in '{current_mode}'; using default preset")
+        try:
+            if current_mode is None:
+                preset_cfg = PresetManager.get_preset_by_preset_model_name(model_name=request.model)
+                if len(preset_cfg) >= 1:
+                    logger.info(f"🟢🟢 Default mode : for model '{request.model}'")
                 else:
                     preset_cfg = PresetManager.get_default_preset()
-                    logger.info(f"🚨 No preset slug found in messages; using default preset")
-                logger.info(f"🔍 No '{request.model}' found for '{current_mode}'")
-        else:
+                    if len(preset_cfg) >= 1:
+                        logger.info(f"🟢🔴 Default mode : using default preset")
+                    else:
+                        preset_cfg = PresetManager.get_default_preset()
+                        logger.info(f"🟢🔴🔴 Default mode : using default preset")
+            else:
+                preset_cfg = PresetManager.get_preset_by_preset_model_name(preset=current_mode, model_name=request.model)
+                if len(preset_cfg) >= 1:
+                    logger.info(f"🟢🟢 '{current_mode}' 🧰 mode : for model '{request.model}'")
+                else:
+                    preset_cfg = PresetManager.get_default_preset(preset=current_mode)
+                    if len(preset_cfg) >= 1:
+                        logger.info(f"🟢🔴 '{current_mode}' 🧰 mode : using default preset")
+                    else:
+                        preset_cfg = PresetManager.get_default_preset()
+                        logger.info(f"🟢🔴🔴 '{current_mode}' 🧰 mode : using default preset")
+        except:
             preset_cfg = PresetManager.get_default_preset()
-            logger.info(f"🚨 No preset slug found in messages; using default preset")
+            logger.info(f"🚨 No preset mode found in messages; using default preset")
 
         # Merge preset values into sampler_config
         for key in ["temp", "top_p", "top_k", "min_p"]:
