@@ -40,7 +40,7 @@ class MLXWrapperCache:
     """
 
     def __init__(
-        self, max_size: int = 1, ttl_seconds: int = 1800, cleanup_interval: int = 5
+        self, max_size: int = 1, ttl_seconds: int = 600, cleanup_interval: int = 5
     ):
         """Initialize cache with LRU eviction and TTL support.
 
@@ -312,4 +312,4 @@ class MLXWrapperCache:
 
 # Global cache instance - shared across all API endpoints
 # Default to 3 models with 5-minute TTL as suggested by user requirements
-wrapper_cache = MLXWrapperCache(max_size=1, ttl_seconds=1800)
+wrapper_cache = MLXWrapperCache(max_size=1, ttl_seconds=600)
