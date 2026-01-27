@@ -142,6 +142,7 @@ def start():
         log_level=args.log_level,
         use_colors=True,
         workers=args.workers,
+        timeout_keep_alive=1800,
     )
 
 if __name__ == "__main__":
